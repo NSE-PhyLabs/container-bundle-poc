@@ -1,6 +1,6 @@
 # 인지 모듈 전달본 — 라면 묶음
 
-이 폴더는 인지 코드, MobileSAM 가중치, 스테레오 보정값, 확인용 연속 입력 6장과 출력 예시를 담는다. 제어 코드와 시뮬레이터는 포함하지 않는다.
+이 폴더는 인지 코드, MobileSAM 가중치, 스테레오 보정값, 원본 물체 촬영 163장, 보정 촬영 파일 136개와 출력 예시를 담는다. 제어 코드와 시뮬레이터는 포함하지 않는다.
 
 ## 구성
 
@@ -11,8 +11,11 @@
 - `percept_common/ros/publish_hypothesis.py`: ROS 2 토픽 발행
 - `percept_common/scripts/run_once.py`, `run_live.py`: 한 장·연속 실행
 - `models/mobile_sam.pt`, `calib/stereo_calib.npz`: 가중치·실제 스테레오 카메라 보정값
-- `data/obj_box/030.png`~`035.png`: 좌우 영상이 가로로 붙은 1280×480 연속 PNG
-- `examples/`: `031.png` 단일 실행의 가설·동작 후보 JSON과 시각화, 6장 연속 실행 JSONL
+- `data/obj_box/`: 원본 스테레오 PNG 36장
+- `data/obj_multi/`: 원본 스테레오 PNG 16장
+- `data/obj_single/`: 원본 스테레오 PNG 111장. 위 3세트가 인지 촬영 데이터 총 163장이다.
+- `data/calib_shots/`: 스테레오 카메라 보정 촬영 원본 68쌍(PNG 68장과 코너 좌표 NPZ 68개). `scripts/calibrate_stereo.py`로 보정값을 재계산할 수 있다. 이 스크립트는 `calib/stereo_calib.npz`를 덮어쓴다.
+- `examples/`: `031.png` 단일 실행의 가설·동작 후보 JSON과 시각화, `obj_box/030.png`~`035.png` 6장 연속 실행 JSONL
 
 ## 실행 환경
 
@@ -47,7 +50,10 @@ python scripts/run_once.py --card objects/ramen_bundle \
 
 ```bash
 python scripts/run_live.py --card objects/ramen_bundle --source dir \
-  --dir ../data/obj_box --n 6 --rate 0 --no-record \
+  --dir ../data/obj_box/030.png --dir ../data/obj_box/031.png \
+  --dir ../data/obj_box/032.png --dir ../data/obj_box/033.png \
+  --dir ../data/obj_box/034.png --dir ../data/obj_box/035.png \
+  --n 6 --rate 0 --no-record \
   --gripper grippers/dummy_hand --task tasks/extract_from_tilted_box \
   --out ../my_output/live.jsonl
 ```
@@ -72,7 +78,7 @@ python ros/publish_hypothesis.py --ros-args \
   -p gripper:=grippers/dummy_hand \
   -p task:=tasks/extract_from_tilted_box \
   -p adapter:=replay \
-  -p 'dirs:=[../data/obj_box]' \
+  -p 'dirs:=[../data/obj_box/030.png,../data/obj_box/031.png,../data/obj_box/032.png,../data/obj_box/033.png,../data/obj_box/034.png,../data/obj_box/035.png]' \
   -p rate_hz:=5.0 \
   -p max_frames:=6 -p record:=false
 ```

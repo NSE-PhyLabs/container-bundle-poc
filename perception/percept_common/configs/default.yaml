@@ -4,8 +4,10 @@ paths:
   T_base_cam_npz: calib/T_base_cam.npz  # 실기 hand-eye 결과. 없으면 camera 좌표 출력.
   mobile_sam_ckpt: ../models/mobile_sam.pt
   original_scripts: null  # 원본 baseline 검증은 전달 범위 밖
-  datasets:
-    obj_box: ../data/obj_box  # 좌우 카메라가 가로로 붙은 1280x480 PNG 연속 6장
+  datasets:  # 원본 스테레오 PNG 총 163장, 좌우 영상이 가로로 붙은 1280x480
+    obj_box: ../data/obj_box       # 36장
+    obj_multi: ../data/obj_multi   # 16장
+    obj_single: ../data/obj_single # 111장
   library: library/records.jsonl
 frames:
   base: base_link

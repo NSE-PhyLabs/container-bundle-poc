@@ -2,7 +2,7 @@
 
 ## 인지 모듈
 
-[perception/README.md](perception/README.md)에 설치, 저장 영상 재생, ROS 2 토픽 연결, 실기 카메라 전환 방법을 정리했다. `perception/`에는 인지 코드·설정, MobileSAM 가중치, 스테레오 보정값, 연속 촬영 예시 6장과 출력 예시가 들어 있다.
+[perception/README.md](perception/README.md)에 설치, 저장 영상 재생, ROS 2 토픽 연결, 실기 카메라 전환 방법을 정리했다. `perception/`에는 인지 코드·설정, MobileSAM 가중치, 스테레오 보정값, 원본 물체 촬영 163장, 보정 촬영 파일 136개와 출력 예시가 들어 있다.
 
 제어 쪽은 `/object_poses`에서 유효 물체 자세를 받고, 그리퍼·작업을 지정한 경우 `/affordances`에서 접근·삽입 후보를 받을 수 있다. 두 출력 모두 `frame_id`를 확인해야 한다. 현재 전달본에는 실기용 카메라→`base_link` 보정값이 없어 출력이 `camera` 좌표다. 실기 제어에 연결하기 전에 로봇에 장착한 카메라의 hand-eye 보정을 완료해야 한다.
 
