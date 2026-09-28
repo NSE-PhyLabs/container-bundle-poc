@@ -1,0 +1,48 @@
+project_root: ..
+paths:
+  calib_npz: ../calib/stereo_calib.npz
+  T_base_cam_npz: calib/T_base_cam.npz  # 실기 hand-eye 결과. 없으면 camera 좌표 출력.
+  mobile_sam_ckpt: ../models/mobile_sam.pt
+  original_scripts: null  # 원본 baseline 검증은 전달 범위 밖
+  datasets:
+    obj_box: ../data/obj_box  # 좌우 카메라가 가로로 붙은 1280x480 PNG 연속 6장
+  library: library/records.jsonl
+frames:
+  base: base_link
+  camera: camera            # T_base_cam이 항등일 때 출력 frame_id
+fuse:
+  iou_within_finder: 0.6    # v5 검출 내부 중복 제거 (detect_container.py:243). 값 변경 금지(회귀)
+  iou_between_finders: 0.5  # Finder 간 병합 (지시서 §6 fuse.py)
+  prefer_split: false       # 큰 마스크 1개 vs 그 안의 작은 마스크 2개 이상이 경쟁하면, 작은 것들이 각각 카드 치수 범위면 작은 것들 채택. Step 7에서 켜서 비교
+ros:
+  topics:
+    hypotheses: /object_hypotheses          # std_msgs/String (Hypotheses.to_json)
+    poses: /object_poses                    # geometry_msgs/PoseArray (base frame, 유효 물체만)
+    affordances: /affordances               # std_msgs/String (Affordances.to_json). gripper·task 를 줬을 때만
+    legacy_pose: /container_pose            # 기존 호환 PoseStamped (publish_container_pose.py:113)
+    legacy_poses: /container_poses          # 기존 호환 PoseArray (publish_container_pose.py:114)
+    feedback: /percept/contact_feedback     # 구독. std_msgs/String (ContactFeedback JSON, docs/contact_feedback.md)
+  rate_hz: 5
+  qos_depth: 1                              # RELIABLE + KEEP_LAST(1). 기존 노드는 10 이었으나 최신 값만 쓰면 되므로 1
+  camera_backoff_s: [0.5, 10.0]             # camera_unavailable 시 재시도 대기 (초기, 상한). 2배씩 증가
+lift:
+  min_points_default: 30    # 카드 gate.min_points 가 없을 때(축소 모드 카드)
+  outlier: {method: z_percentile, percentiles: [5, 95]}   # 기본 이상치 제거 (원본 estimate_pose.py:74-75). 카드 lift.outlier 가 덮음
+  knn: {k: 20, std_ratio: 2.0}                          # method knn 일 때 통계 기준 (v3 §7.5)
+gate:
+  confidence_filter: false  # true 면 confidence < min_confidence 를 pose_valid=False 로. Step 8 보정 전엔 끔 (confidence_map 이 [추측])
+  min_confidence: 0.2
+neighbors:
+  margin_mm: 20             # 이웃: 중심 거리 < 2×반경 + margin
+  contact_margin_mm: 5      # 접촉: 중심 거리 < 2×반경 + contact_margin
+mesh:
+  auto_scale: true          # mesh extents 가 카드 치수와 tol_frac 넘게 다르면 scale_correction 자동 보정
+  tol_frac: 0.03
+scene:                      # ④ 정사영 (Step 4)
+  res_mm: 2.0               # 격자 해상도 = 커널 px_mm
+  free_height_mm: 5.0       # 기준면 위 이 높이 미만이면 free
+  margin_mm: 100            # 기준면 원점 여유
+  ransac_thr_mm: 8.0
+regression:                 # scripts/regression.py 통과 기준 (mm 단위 비교)
+  pos_tol_mm: 1.0
+  axis_tol_deg: 0.1

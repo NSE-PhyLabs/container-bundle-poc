@@ -1,0 +1,13 @@
+# G1 기본 고무손(더미손). 치수 근거: 실측 손 bbox 132(손가락 방향)×67(두께, 굽힘 포함)×107(폭) mm, 손바닥 판 두께 약 30 (PROJECT_NOTES §1). 커널 수치는 [추측] (ASSUMPTIONS 19)
+name: dummy_hand
+px_mm: 2.0                                   # 커널 png 1픽셀 = 2 mm (configs/default.yaml scene.res_mm 와 같음; 다르면 NEAREST 리샘플)
+insert_profile: kernel_insert.png            # 골/틈에 들어가는 손날 단면 (정사영 뷰): 30(경사 방향 두께) × 60(축 방향) mm, 흰색 = 점유
+support_profile: kernel_support.png          # 받침·접촉 발자국: 132 × 67 mm
+approach: {direction: normal, offset_mm: 150}    # 접근점 = 후보 지점 − offset·방향 (params_grasp.yaml approach_standoff_mm 150)
+blade_profile: blade_profile.png             # 2.5D 날 높이 프로파일(Q23): 픽셀값 = 그 칸에서 날이 차지하는 아래 방향 깊이 mm. 손끝 15 mm(첫 마디)가 강체로 들어가야 하는 부분(나머지 굽힘은 밀어냄) [추측]
+blade_zero_mm: 0.0                            # 기준면에서 날 윗면까지의 깊이(아래 +). 0 = 날 윗면이 표면에 닿을 때까지 넣음
+insert_depth_mm: 60
+clearance_need_mm: {below: 20, side: 10, uphill: 0}
+two_point: false
+end_inset_mm: 100                            # params_grasp.yaml support.end_inset_mm
+measures: {width_encoder: false, force_at_root: false}

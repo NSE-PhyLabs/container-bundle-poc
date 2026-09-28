@@ -1,0 +1,6 @@
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+perception/percept_common/env/
+perception/percept_common/library/
+perception/my_output/

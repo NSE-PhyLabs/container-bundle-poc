@@ -1,0 +1,9 @@
+# Python 3.10. Install torch and torchvision for the target CPU/CUDA platform first.
+# Install MobileSAM from the pinned source commit shown in README.md separately.
+numpy==2.2.6
+opencv-python==4.13.0.92
+PyYAML==6.0.3
+scipy==1.13.1
+trimesh==4.12.2
+pyzmq==27.1.0
+timm==1.0.28
