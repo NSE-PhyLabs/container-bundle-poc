@@ -1,0 +1,30 @@
+# 실물 머리 스테레오 카메라(teleimager 좌우 붙임 1280x480). 값은 calib/stereo_calib.npz에서 2026-09-18 확인.
+# 코드는 npz를 읽되 아래 값과 tolerance 넘게 다르면 경고한다 (check_env.sh, percept/camera/stereo_head.py).
+source: stereo_head          # calib npz 경로는 configs/default.yaml paths.calib_npz 한 곳
+image_size: [640, 480]       # 한쪽 영상 (가로, 세로) = npz image_size = 정렬맵 크기. 원본 프레임은 1280x480 (왼쪽 [:, :640], 오른쪽 [:, 640:])
+rectified_left:              # P1 기준 (KL 아님: KL은 316.3/259.4로 다름)
+  fx: 676.44
+  fy: 676.44
+  cx: 307.01
+  cy: 270.03
+baseline_mm: 65.09
+tolerance: {fx: 0.01, fy: 0.01, cx: 0.01, cy: 0.01, baseline_mm: 0.01}
+sgbm:                        # detect_container.py:42-49 = estimate_pose.py:46-54 = make_depth.py:46-61 (동일). 값 변경 금지
+  min_disparity: 0
+  num_disparities: 160
+  block_size: 7              # P1 = 8*3*bs*bs = 1176, P2 = 32*3*bs*bs = 4704
+  disp12_max_diff: 1
+  uniqueness_ratio: 8
+  speckle_window_size: 120
+  speckle_range: 2
+  pre_filter_cap: 63
+  mode: SGBM_3WAY
+disparity_scale: 16.0        # SGBM int16 고정소수 → px
+invalid_disparity_max: 0.0   # disp <= 0 무효 (SGBM 무효 = -1.0)
+grab:                        # capture_object.py:30-31, 69-74 원본 값 (하드웨어 필요)
+  zmq_host: 192.168.123.164
+  zmq_port: 55555
+  recv_timeout_ms: 5000
+  conflate: true
+  raw_shapes: [[480, 1280], [483, 1282], [480, 640]]
+frame_id_camera: head_camera_optical_frame   # publish_container_pose.py:158 기본값 (TF 트리 존재 여부 미확인)

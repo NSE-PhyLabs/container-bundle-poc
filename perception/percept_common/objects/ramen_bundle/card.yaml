@@ -1,0 +1,79 @@
+# 실측(참고, params_grasp.yaml 2026-09): 용기 1개 입구 140·바닥 108·높이 90 mm·12~13 g / 묶음 = 용기 30개, 축 650~670 mm(스캔 메시 660.2), 360~390 g.
+# mesh.glb: 단위 m, extents 0.6602×0.140×0.1401, bbox 중심이 원점에서 (-0.183, -0.453, -0.062) 벗어남 → 합성은 bbox 중심으로 옮겨 씀.
+# 라면(컵라면 용기) 묶음 카드 (v3 §6.1). 검출·맞춤 상수는 8월 원본(scripts/detect_container.py v5, estimate_pose.py) 값 그대로 — 값 변경 금지(regression 기준).
+class: ramen_bundle
+rigidity: semi_rigid
+geometry:
+  type: cylinder
+  params:
+    radius_mm: 70                # 고정 반지름 (params_grasp.yaml bundle.radius_mm = estimate_pose.py DIAM_MM 140 / 2)
+    length_mm: [650, 670]        # 실측 (params_grasp.yaml bundle.length_mm; v3 예시 [640,680] 대신 실측값, ASSUMPTIONS 4). 범위 밖이면 confidence 페널티
+find:
+  methods: [color_rule]          # Step 5.5 이후 [color_rule, ref_match]
+  text_prompt: "stack of instant noodle cups"   # sam3_text 용 (승인 시)
+  refs_dir: refs/
+  color_hint:                    # detect_container.py 줄 번호 표기. OpenCV HSV (H 0~179, S/V 0~255)
+    strict: [[[0, 150, 50], [10, 255, 255]], [[166, 150, 50], [179, 255, 255]]]   # strict_red :60-66 (H≤10, S≥150 = config detect:, V≥50·166~179 코드 고정)
+    loose:  [[[0, 70, 50], [15, 255, 255]], [[165, 70, 50], [179, 255, 255]]]     # red_candidates :71-72
+    morph: {close: [31, 9], open: [7, 7]}                                          # :73-76 (절대 px, 640x480 기준)
+    min_area_frac: 0.008                                                           # :69 후보 최소 면적 (영상 면적 비)
+    trim: {min_row_px: 8, min_rows: 10}                                            # trim_by_strict_red :89-96
+    split:                                                                          # split_adaptive :126-153 (시차 기반 세로 분할). null 이면 분할 안 함
+      min_height_px: 25
+      max_cuts: 8
+      probe_min_px: 30
+      probe_frac: 0.4
+      min_diam_px: 15
+      remain_factor: 1.45
+      window_frac: 0.35
+      lo_frac: 0.55
+      hi_margin_px: 3
+      min_band_px: 18
+      depth_min_samples: 100                                                       # local_diam_px :104
+      fallback_length_mm: 650                                                      # 폭 폴백의 길이/지름비 분자 (LEN_DIAM_RATIO = 650/140, :30). 값 변경 금지
+      profile: {min_sel: 5, min_valid_frac: 0.4, blur_ksize: 9}                    # brightness_profile :109-123
+    sam_prompt: {point: box_center, box: true, multimask: false}                   # :218-221
+    clip: {y_frac_box: 0.2, x_frac_img: 0.06}                                      # 상시 절단 :224-229
+    verdict: {area_min_frac: 0.004, area_max_frac: 0.55, min_elongation: 1.25, min_strict_frac: 0.18}   # mask_verdict :169-184
+lift:
+  outlier: {method: z_percentile, percentiles: [5, 95]}   # estimate_pose.py:74-75 (Z 상하위 5%). 생략하면 configs/default.yaml lift.outlier
+pose:
+  backend: geom_fit              # Step 6 이후 mesh_pose
+  mesh: mesh.glb                 # assets/scan/bundle.glb 복사본
+  mesh_units: m                  # 스캔본 extents 0.6602×0.140×0.1401 (m) 확인
+  refine: null                   # backend 가 B/C 일 때 geom_fit
+  geom_fit:                      # estimate_pose.py fit_cylinder / _fit_circle_fixed_r 상수 그대로 (:78-129)
+    max_iter: 60
+    step_tol_mm: 0.001
+    damping: 1.0e-6
+    init_frac_r: 0.78
+    diverge_frac_r: 2.5
+    length_percentiles: [2, 98]
+    cross_percentile: 90
+    basis_switch_abs_z: 0.9
+    axis_sign: x_positive        # axis[0] >= 0 (:103-104)
+scene:
+  reference_plane: {type: box_slope, plane_from: instance_centers}   # 원통 중심들에 평면 맞춤 후 반경만큼 법선 방향 이동 (Step 4)
+  neighbors: true
+  tier_cluster_mm: 30            # 같은 단 판정 (= extras.tie_mm)
+  walls:                         # Q24 답(9/21): 벽은 카드 치수로 그린다(색 검출 금지). 값은 [추측] 임시 — 실측은 QUESTIONS 25
+    inner_mm: [730, 590, 440]    # 안쪽 [축 방향 길이(v), 경사 방향 폭(u), 깊이] (config/params_grasp.yaml box: 730 / slope_len 590 / 440)
+    lip_mm: 25                   # 아래턱 높이 [추측]
+    thickness_mm: 10
+    origin: hull                 # hull = 인스턴스 외곽에서 역산(줄이 경사 아래 벽에 붙는다는 전제, 첫 단 부정확·경고) | marker = 박스 ArUco, 실패 시 hull 폴백
+    marker: {id: 2, size_mm: 80, dict: DICT_4X4_50, T_box_marker: null}   # 박스 안쪽 구석(축−끝·경사 위 벽·바닥) 좌표계 기준 마커 중앙 [x y z mm, rx ry rz deg], 실측 후 기입
+gate:
+  fit_valid: {length_mm: [380, 900], cross_mm: [70, 230]}   # estimate_pose.py:30-31 LEN/CROSS 범위 (pose_valid 판정, 값 그대로)
+  min_points: 200                # estimate_pose.py:66 (v3 예시 300 대신 원본값, ASSUMPTIONS 18)
+  confidence_map:
+    geom_fit: {rms_mm_good: 5.66, rms_mm_bad: 18.1}      # 임시: baseline 유효 218건 원 피팅 잔차 RMS 분위 25% / 95% (2026-09-18, ASSUMPTIONS 22). Step 8 calibrate 후 갱신
+    mesh_pose: {score_good: 0.9, score_bad: 0.4}
+  length_penalty: {per_mm: 0.05}                         # 카드 length_mm 범위 밖 mm 당 confidence −0.05
+  stable_frames: 5               # 연속 모드(run_live)에서만 적용
+  stable_tol_mm: 5
+  grasp_tolerance: {pos_mm: 15, axis_deg: 5}   # 잠정. calibrate 후 갱신
+extras:
+  compute: [axis, grooves, row_level, budget_uphill]   # budget_uphill 은 SceneMap(Step 4) 이 있을 때만 채워짐
+  valley: {dist_min_mm: 120, dist_max_mm: 160, max_abs_dot_u_axis: 0.5, max_abs_dot_u_n: 0.5}   # params_grasp.yaml valley: (V골)
+  normal: {min_bundles: 2, max_abs_dot_s_axis: 0.9}                                             # normal: (박스 바닥 법선)
+  tie_mm: 30                                                                                    # target.tie_mm (같은 단 판정 폭)

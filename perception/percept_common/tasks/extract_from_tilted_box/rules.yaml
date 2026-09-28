@@ -1,0 +1,18 @@
+# 기울어진 박스에서 묶음 꺼내기 (v3 §6.3)
+name: extract_from_tilted_box
+goal: extract
+action: insert                                # 후보 action 라벨
+axis: uphill                                  # free_space·clearance 기준 축 (scene plane 의 u축 = uphill)
+observe_distance_m: [0.6, 1.4]                # **유효성 한계**(카메라→물체, m). 밖이면 pose_valid=False, invalid_reason='observe_distance'. task 가 있을 때만 적용 (Q14·Q21)
+preferred_distance_m: [1.0, 1.25]             # **선호 범위**(Q22 답 9/21: Step 4 거리별 표 — 1.0 m AP 0.846·위치 7.3 mm 최적, 0.8 m 는 1/3 잘림). 유효성과 무관. Step 5 affordance score 가중(안 1.0, 밖은 선형 감쇠 최소 0.5)
+cost_terms:                                   # ⑤ costmap = Σ term
+  - {layer: wall,   mode: hard}               # 커널이 조금이라도 겹치면 불가
+  - {layer: liner,  mode: soft, weight: 5.0, decay_mm: 20}   # 거리변환 기반: 가까울수록 비용↑
+  - {layer: object_other, mode: soft, weight: 2.0, decay_mm: 15}
+  - {layer: clearance_uphill, mode: reward, weight: 1.0, saturate_mm: 40}
+  - {layer: target_valley, mode: reward, weight: 3.0}         # 타깃 인스턴스의 V골 선 근방
+ordering: [tier_top_first, valley_count_desc, uphill_pos_desc, id_asc]   # 빈도주의 순위 키
+disturbance_exclude: [target, uphill_chain, valley_partner]
+rotations_deg: [0]
+top_k: 5
+nms_mm: 40

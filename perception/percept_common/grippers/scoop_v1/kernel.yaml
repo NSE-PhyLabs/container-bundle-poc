@@ -1,0 +1,13 @@
+# 스쿱(주걱형) 그리퍼 v1 — 설계안. 앞날 3 mm → 뒤 8 mm 테이퍼, 길이 80; 받침판 140×200. 전부 [추측] (ASSUMPTIONS 19)
+name: scoop_v1
+px_mm: 2.0
+insert_profile: kernel_insert.png            # 사다리꼴: 앞 3 mm → 뒤 8 mm, 길이 80 mm
+support_profile: kernel_support.png          # 140 × 200 mm
+approach: {direction: normal, offset_mm: 120}
+blade_profile: blade_profile.png             # 2.5D 날 높이 프로파일(Q23): 픽셀값 = 그 칸에서 날이 차지하는 아래 방향 깊이 mm. 얇은 날: 앞 8 → 뒤 15 mm [추측]
+blade_zero_mm: 0.0                            # 기준면에서 날 윗면까지의 깊이(아래 +). 0 = 날 윗면이 표면에 닿을 때까지 넣음
+insert_depth_mm: 80
+clearance_need_mm: {below: 12, side: 10, uphill: 0}
+two_point: false
+end_inset_mm: 100
+measures: {width_encoder: false, force_at_root: true}

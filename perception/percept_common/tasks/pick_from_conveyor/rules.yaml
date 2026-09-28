@@ -1,0 +1,14 @@
+# 컨베이어에서 집기 (v3 §6.3)
+name: pick_from_conveyor
+goal: pick
+action: scoop
+axis: x
+observe_distance_m: [0.5, 1.2]       # 유효성 한계
+preferred_distance_m: [0.6, 1.0]     # 선호 범위 (Q21)
+cost_terms:
+  - {layer: conveyor_edge, mode: hard}
+  - {layer: object_other, mode: hard}
+ordering: [x_asc]
+rotations_deg: [0, 90]
+top_k: 3
+nms_mm: 60

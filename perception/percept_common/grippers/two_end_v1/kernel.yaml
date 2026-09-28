@@ -1,0 +1,14 @@
+# 양끝 파지 그리퍼 v1 — 설계안. 20×40 mm 삽입 날 2개를 축 방향 ±(L/2 − end_inset) 에 동시 평가. 전부 [추측] (ASSUMPTIONS 19)
+name: two_end_v1
+px_mm: 2.0
+insert_profile: kernel_insert.png            # 날 1개: 20 × 40 mm (두 위치는 generate 가 two_point 로 배치)
+support_profile: kernel_support.png          # 날 발자국과 같음: 20 × 40
+approach: {direction: normal, offset_mm: 150}
+blade_profile: blade_profile.png             # 2.5D 날 높이 프로파일(Q23): 픽셀값 = 그 칸에서 날이 차지하는 아래 방향 깊이 mm. 날 15 mm [추측]
+blade_zero_mm: 0.0                            # 기준면에서 날 윗면까지의 깊이(아래 +). 0 = 날 윗면이 표면에 닿을 때까지 넣음
+insert_depth_mm: 40
+clearance_need_mm: {below: 15, side: 8, uphill: 0}
+two_point: true
+spacing_rule: "L - 2*end_inset"              # 두 날 간격 = 물체 길이 − 2·end_inset
+end_inset_mm: 100
+measures: {width_encoder: true, force_at_root: true}

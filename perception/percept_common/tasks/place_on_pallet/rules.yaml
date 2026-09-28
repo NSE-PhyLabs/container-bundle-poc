@@ -1,0 +1,16 @@
+# 팔레트 위 놓기 (v3 §6.3)
+name: place_on_pallet
+goal: place
+action: place
+axis: x
+observe_distance_m: [0.6, 1.5]       # 유효성 한계
+preferred_distance_m: [0.8, 1.2]     # 선호 범위 (Q21)
+cost_terms:
+  - {layer: pallet_edge, mode: hard, margin_mm: 10}
+  - {layer: object_other, mode: hard}                       # 같은 높이의 기존 상자와 겹침 불가
+  - {layer: height_mismatch, mode: soft, weight: 3.0}       # 지지면 높이 편차
+  - {layer: pattern_slot, mode: reward, weight: 2.0}        # 적재 패턴 슬롯(옵션 파일 pattern.yaml)
+ordering: [pattern_order, x_asc, y_asc]
+rotations_deg: [0, 90]
+top_k: 3
+nms_mm: 100
